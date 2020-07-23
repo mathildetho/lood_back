@@ -10,6 +10,32 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
+// socket io
+const socketio = require('socket.io');
+const http = require('http');
+const server = http.createServer(app);
+const io = socketio(server);
+server.listen(2000, () => console.log(`server io listening on port 2000`));
+
+io.on('connection', (socket) => {
+  console.log('new co');
+  socket.on('join', ({pseudo, room}, callback) => {
+    console.log(pseudo, room);
+    const err = true;
+    
+    if(err) {
+      callback({err: 'error'});
+    }
+  })
+
+  socket.on('disconnect', () => {
+    console.log('user left')
+  })
+});
+
+
+
 app.use("/api", api);
 
 // UPLOAD FILE

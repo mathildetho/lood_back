@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const connection = require('../config');
 const users = require('./users');
 const foods = require('./foods');
 
