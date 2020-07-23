@@ -4,6 +4,19 @@ const connection = require("../config");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+// get one user
+router.get('/:id', (req, res) => {
+    const {id} = req.params;
+    connection.query("SELECT * FROM user WHERE id = ?", id, (err, results) => {
+      if (err) {
+        console.log(err);
+        res.status(404).send("Erreur lors de l'affichage de l'user");
+      } else {
+        res.status(200).json(results);
+      }
+    })
+});
+
 // create profile
 router.post('/', (req, res) => {
     const hash = bcrypt.hashSync(req.body.password, 10);
@@ -71,12 +84,50 @@ function verifyToken(req, res, next) {
     };
 };
 
-// get all food of one user
+// put one user
+router.put("/:id", (req, res) => {
+    const { id } = req.params;
+    const hash = bcrypt.hashSync(req.body.password, 10);
+    const formBody = {
+        pseudo: req.body.pseudo,
+        description: req.body.description,
+        image: req.body.image,
+        sexe: req.body.sexe,
+        password: hash,
+    };
+    connection.query(
+        "UPDATE user SET ? WHERE id = ?",
+        [formBody, id],
+        (err) => {
+            if (err) {
+                res.status(500).send(
+                    `Erreur lors de la modification d'un user`
+                );
+            } else {
+                res.sendStatus(200);
+            }
+        }
+    );
+});
+
+// get all favorite food of one user
 router.get('/:id/foods', (req, res) => {
     const {id} = req.params;
     connection.query('SELECT f.*, u.id AS iduser FROM user AS u JOIN `match` AS m ON u.id = m.id_user JOIN food AS f ON m.id_food = f.id WHERE u.id = ?', [id], (err, results) => {
         if (err) {
             res.status(404).send("Erreur lors de l'affichage des plats favoris");
+          } else {
+            res.status(200).json(results);
+          }
+    })
+})
+
+// get all no favorite food of one user
+router.get('/:id/foods/no', (req, res) => {
+    const {id} = req.params;
+    connection.query('SELECT f.*, u.id AS iduser FROM user AS u JOIN nomatch AS m ON u.id = m.id_user JOIN food AS f ON m.id_food = f.id WHERE u.id = ?', [id], (err, results) => {
+        if (err) {
+            res.status(404).send("Erreur lors de l'affichage des plats non favoris");
           } else {
             res.status(200).json(results);
           }
