@@ -36,7 +36,6 @@ router.post('/login', (req, res) => {
             if(!samePwd){
                 res.status(500).send('Wrong password');
             } else {
-                console.log(result)
                 jwt.sign({result}, process.env.SECRET_KEY, (err, token) => {
                     res.json({token});
                 });
@@ -75,9 +74,8 @@ function verifyToken(req, res, next) {
 // get all food of one user
 router.get('/:id/foods', (req, res) => {
     const {id} = req.params;
-    connection.query('SELECT * FROM user AS u JOIN match AS m ON u.id = m.id_user JOIN food AS f ON m.id_food = f.id WHERE u.id = ?', [id], (err, results) => {
+    connection.query('SELECT f.*, u.id AS iduser FROM user AS u JOIN `match` AS m ON u.id = m.id_user JOIN food AS f ON m.id_food = f.id WHERE u.id = ?', [id], (err, results) => {
         if (err) {
-            console.log(err);
             res.status(404).send("Erreur lors de l'affichage des plats favoris");
           } else {
             res.status(200).json(results);
