@@ -12,26 +12,31 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // socket io
+const { addUser, getUser } = require('./looders');
 const socketio = require('socket.io');
 const http = require('http');
 const server = http.createServer(app);
 const io = socketio(server);
 server.listen(2000, () => console.log(`server io listening on port 2000`));
 
-io.on('connection', (socket) => {
-  console.log('new co');
-  socket.on('join', ({pseudo, room}, callback) => {
-    console.log(pseudo, room);
-    const err = true;
-    
-    if(err) {
-      callback({err: 'error'});
-    }
-  })
+io.on('connect', (socket) => {
+  socket.on('join', ({ pseudo, room }, callback) => {
+    const { err, user } = addUser({ id: socket.id, pseudo, room });
 
-  socket.on('disconnect', () => {
-    console.log('user left')
-  })
+    if(err) return callback(err);
+
+    socket.join(user.room);
+
+    callback();
+  });
+
+  socket.on('sendMessage', (message, callback) => {
+    const user = getUser(socket.id);
+
+    io.to(user.room).emit('message', { user: user.pseudo, text: message });
+
+    callback();
+  });
 });
 
 
